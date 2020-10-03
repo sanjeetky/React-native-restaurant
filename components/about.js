@@ -4,8 +4,15 @@ import {  FlatList } from 'react-native';
 import { ListItem } from 'react-native-elements';
 import { Card } from 'react-native-elements';
 //import { Image } from 'react-native-paper/lib/typescript/src/components/Avatar/Avatar';
-import { LEADERS } from '../shared/leaders';
+import { connect } from 'react-redux';
+import { baseUrl } from '../shared/baseUrl';
+import { Loading } from './LoadingComponent';
 
+const mapStateToProps = state => {
+  return {
+    leaders: state.leaders
+  }
+}
 
   function History(props){
       return(
@@ -27,10 +34,11 @@ import { LEADERS } from '../shared/leaders';
         return (
          
             <View key={index} style={{margin: 10}}>
-                 <Image source={require('./images/logo.png')}/>
+                 <Image source={{uri: baseUrl + item.image}}/>
                 <Text style={{fontSize: 14}}>{item.name}</Text>
                 <Text style={{fontSize: 12}}>{item.description} </Text>
             </View>
+             
             
         );
     };
@@ -39,7 +47,7 @@ import { LEADERS } from '../shared/leaders';
       return(
         <Card title='Our Leaders' >
           <FlatList
-              data={LEADERS}
+              data={props.leaders}
               renderItem={renderleaders}
           />
           </Card>
@@ -47,26 +55,41 @@ import { LEADERS } from '../shared/leaders';
   }
 
 class About extends Component{
+
 constructor(props)
 {
-    super();
-    this.state={
-        leaders:LEADERS
-    }
+  super();
 }
+
+
     render()
     {
         
+      if (this.props.leaders.isLoading) {
+        return(
+            <Loading />
+        );
+    }
+    else if (this.props.leaders.errMess) {
+        return(
+            <View>            
+                <Text>{this.props.leaders.errMess}</Text>
+            </View>            
+        );
+    }
+    else {
+      
         return(
           
              <ScrollView>
                <History/>
-               <Lead leaders={this.state.leaders}/>
+               <Lead leaders={this.props.leaders.leaders}/>
             </ScrollView>
         )
     }
+    }
 }
-export default About;
+export default connect (mapStateToProps) (About);
 const styles = StyleSheet.create({
     paragraph: {
       margin: 10,

@@ -5,15 +5,22 @@ import { StyleSheet, Text, View } from 'react-native';
 import Main from './components/MainComponent';
 import { DrawerActions, NavigationContainer } from '@react-navigation/native';
 
+import {Provider} from 'react-redux';
+import {ConfigreStore} from './redux/configureStore';
+const store=ConfigreStore();
 
 export default class  App extends Component {
 
   render()
   {
     return(
-      <NavigationContainer>
-         <Main/>
-       </NavigationContainer>
+     
+        <NavigationContainer>
+           <Provider store={store}>
+           <Main/>
+           </Provider>
+        </NavigationContainer>
+    
     )
   }
 
