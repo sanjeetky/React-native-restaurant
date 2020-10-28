@@ -1,36 +1,49 @@
 import React, { Component } from 'react';
 
-import { View, Platform, Text, ScrollView, Image, StyleSheet, Button } from 'react-native';
-
+import { View, Platform, Text, ScrollView, Image, StyleSheet,  ToastAndroid, Alert } from 'react-native';
+import NetInfo from "@react-native-community/netinfo";
 import Icon from 'react-native-vector-icons/FontAwesome5';
-
 import { connect } from 'react-redux';
-import { fetchDishes, fetchComments, fetchPromos, fetchLeaders } from '../redux/ActionCreators';
+import { fetchDishes, fetchComments,fetchCart,fetchSliderimage } from '../redux/ActionCreators';
+import {Badge,Avatar,Button} from 'react-native-elements';
+import { FontAwesome } from '@expo/vector-icons';
 
 const mapStateToProps = state => {
   return {
     dishes: state.dishes,
     comments: state.comments,
-    promotions: state.promotions,
-    leaders: state.leaders
+    user:state.user,
+    cart:state.cart
+    //sliderimage:state.sliderimage
   }
 }
 
 const mapDispatchToProps = dispatch => ({
   fetchDishes: () => dispatch(fetchDishes()),
   fetchComments: () => dispatch(fetchComments()),
-  fetchPromos: () => dispatch(fetchPromos()),
-  fetchLeaders: () => dispatch(fetchLeaders()),
+   fetchCart:(user)=>dispatch(fetchCart(user)),
+   fetchSliderimage:()=>dispatch(fetchSliderimage())
+
 })
 
 
 
 import Menu from './MenuComponent';
 import Home from './home';
-import About from './about';
 import Contact from './contact';
 import Reservation from './ReservationComponent';
 import Dishdetail from './DishdetailComponent';
+import Login from './LoginComponent';
+import Cart from './cart';
+import Delivery from './delivery';
+import Search from './search';
+import RegisterTab from './signuptab';
+import OTPsend from './OTPsend';
+import OTPverify from './OTPverify';
+import ResetOTPsend from './ResetOTPsend';
+import ResetOTPverify from './ResetOTPverify';
+import ResetPassword from './ResetPassword';
+
 
 
 import { DrawerActions, NavigationContainer } from '@react-navigation/native';
@@ -45,122 +58,194 @@ const bottoms=createMaterialBottomTabNavigator();
 
 
 
-function createbottom()
-{
-  return(
-     <bottoms.Navigator>
-       <bottoms.Screen name='Home' component={Homenavigator}
-        options={{
-          tabBarIcon:(color)=>(
-            <Icon
-            name='home'  size={24} color={color}
-          />
-          )
-        }}
-       />
-       <bottoms.Screen name='BottomStack' component={StackNavigator}
-        options={{
-          tabBarIcon:(color)=>(
-            <Icon
-            name='utensils'  size={24} color={color}
-          />
-          ),
-          title:"Menu"
-        }}
-       />
-     </bottoms.Navigator>
 
-  )
-}
+class Main extends Component {
+  constructor(props) {
+    super();
+  }
 
-const DrawerNavigator = ({navigation}) => {
+  componentDidMount() {
+    this.props.fetchDishes();
+    this.props.fetchComments();
+   this.props.fetchCart({username:this.props.user.user.username});
+   this.props.fetchSliderimage();
+    
+  NetInfo.addEventListener(connectionInfo => {
+    ToastAndroid.show('Initial Network Connectivity Type: '
+    + connectionInfo.isConnected +', effectiveType: '+ connectionInfo.type,
+    ToastAndroid.SHORT)
+});
+  }
+  
+  render() {
+    
+
+    
+
+const DrawerNavigator = ({navigation,props}) => {
   return (
+    
     <Drawer.Navigator >
-      <Drawer.Screen name="Hello"  children={createbottom}
-      options={{title:"Bazaree" ,
-      drawerIcon: (color) => (
-        <Icon
-          name='wolf-pack-battalion'  size={34} color={"blue"}
-        />
-      ),
-      }}/>
+    
        <Drawer.Screen name="Home" component={Homenavigator} 
        options={{
         drawerIcon: (color) => (
           <Icon
-            name='home'  size={24} color={color}
+            name='home'  size={20} 
           />
         ),
        }} />
-       <Drawer.Screen name="About Us" component={Aboutnavigator} options={{
+
+
+    
+         <Drawer.Screen name="Cart" component={CartNavigator} 
+       options={{
         drawerIcon: (color) => (
           <Icon
-            name='user'  size={24} color={color}
+            name='shopping-cart'  size={20} 
           />
         ),
        }} />
-      <Drawer.Screen name="Stack" component={StackNavigator} options={{
-        drawerIcon: (color) => (
-          <Icon
-            name='utensils'  size={24} color={color}
-          />
-        ),
-        title:"Menu"
-       }} />
+
+
+      
+     
       <Drawer.Screen name="Contact Us" component={Contactnavigator} options={{
         drawerIcon: (color) => (
           <Icon
-            name='id-card'  size={24} color={color}
+            name='id-card'  size={20} color={color}
           />
         ),
        }} />
-         <Drawer.Screen name="Resere-vation" component={ReservationNavigator} options={{
+       
+         <Drawer.Screen name="Custom Order" component={ReservationNavigator} options={{
         drawerIcon: (color) => (
           <Icon
-            name='bars'  size={24} color={color}
+            name='book-reader'  size={20} color={color}
           />
         ),
        }} />
+
+       
+        <Drawer.Screen name="My Profile" component={loginNavigator} 
+       options={{
+        drawerIcon: (color) => (
+          <Icon
+            name='user'  size={20} color={color}
+          />
+        ),
+       }} />       
     </Drawer.Navigator>
   );
 }
-const Homenavigator=({navigation})=>
+const Homenavigator=({navigation,props})=>
 {
   return(
     <Stack.Navigator>
       <Stack.Screen name="Home" component={Home}
          options={{
-          title:"Home",
-          headerStyle:{backgroundColor:"#512DA8"},
+          title:null,
+          headerStyle:{backgroundColor:"#7f89df"},
           headerTintColor:"white",
            headerLeft:(color)=>(
-            <Icon
-            name='bars'  size={24} color={color} style={{paddingLeft:20}}
-            onPress={ () =>navigation.toggleDrawer() }  
-          />
-           )
+             
+             <View style={{flexDirection:'row',justifyContent:'space-between'}}>
+              <Icon
+                name='bars'  size={26}  color={'white'} style={{paddingLeft:20,paddingRight:25,top:10}}
+                onPress={ () =>navigation.toggleDrawer() }
+              />
+             <Image
+            source={require('./images/urmart.png')}
+            style={{height:50,width:50}}
+              />
+           </View>
+           ),
+             headerRight:(color)=>(
+              <View style={{right:10,flexDirection:'row',height:32,bottom:3}} >
+
+              
+              <Avatar
+                rounded
+                icon={{ name: 'shopping-cart' }}
+                size={'medium'}
+                containerStyle={{right:10,bottom:6}}
+                onPress={()=>navigation.navigate('Cart')}
+                
+              />
+ 
+             <Badge
+               status="warning"
+              containerStyle={{ position: 'absolute',left:15 }}
+               value={this.props.cart.cart.length}
+               badgeStyle={{width:1,height:18 }}
+               
+               
+             
+               
+             />
+               <FontAwesome.Button  style={{bottom:6,right:3}}   backgroundColor="#7f89df"  onPress={() => navigation.navigate('My Profile')} >
+                                Login
+             </FontAwesome.Button>
+
+           </View>
+             ),
+             
         }}
       />
-    </Stack.Navigator>
-  )
-}
-const Aboutnavigator=({navigation})=>
-{
-  return(
-    <Stack.Navigator>
-      <Stack.Screen name="About" component={About}
+      <Stack.Screen name="Search" component={Search}/>
+       <Stack.Screen name="Menu" component={Menu}
          options={{
-          title:"About Us",
-          headerStyle:{backgroundColor:"#512DA8"},
-          headerTintColor:"white",
-          headerLeft:(color)=>(
-            <Icon
-            name='bars'  size={24} color={color} style={{paddingLeft:20}}
-            onPress={ () =>navigation.toggleDrawer() }  
-          />
-           )
-        }}
-      />
+          headerStyle:{backgroundColor:"#7f89df"},
+          headerRight:(color)=>(
+            <View style={{right:10,flexDirection:'row',height:32,bottom:3}} >
+            <Avatar
+              rounded
+              icon={{ name: 'shopping-cart' }}
+              size={'medium'}
+              containerStyle={{right:10,bottom:6}}
+              onPress={()=>navigation.navigate('Cart')}
+              
+              
+            />
+
+           <Badge
+             status="warning"
+            containerStyle={{ position: 'absolute',left:15 }}
+             value={this.props.cart.cart.length}
+             badgeStyle={{width:1,height:18 }}
+             
+           />
+           </View>)
+         }}
+       
+       />
+       <Stack.Screen name="Dishdetail" component={Dishdetail}
+         options={{
+          headerStyle:{backgroundColor:"#7f89df"},
+          headerRight:(color)=>(
+            <View style={{right:10,flexDirection:'row',height:32,bottom:3}} >
+            <Avatar
+              rounded
+              icon={{ name: 'shopping-cart' }}
+              size={'medium'}
+              containerStyle={{right:10,bottom:6}}
+              onPress={()=>navigation.navigate('Cart')}
+              
+              
+            />
+
+           <Badge
+             status="warning"
+            containerStyle={{ position: 'absolute',left:15 }}
+             value={this.props.cart.cart.length}
+             badgeStyle={{width:1,height:18 }}
+             
+           />
+           </View>)
+         }}
+       
+       />
+  
     </Stack.Navigator>
   )
 }
@@ -172,7 +257,7 @@ const Contactnavigator=({navigation})=>
       <Stack.Screen name="Contact" component={Contact}
          options={{
           title:"Contact Us",
-          headerStyle:{backgroundColor:"#512DA8"},
+          headerStyle:{backgroundColor:"#B2EBEB"},
           headerTintColor:"white",
           headerLeft:(color)=>(
             <Icon
@@ -188,28 +273,31 @@ const Contactnavigator=({navigation})=>
 }
 
 
-const StackNavigator = ({navigation}) => {
-  return (
+
+
+
+
+const CartNavigator=({navigation})=>{
+  return(
     <Stack.Navigator>
-      <Stack.Screen name="Menu" 
-         component={Menu} 
+       <Stack.Screen name="Cart" component={Cart}
          options={{
-           title:"Menu",
-           headerStyle:{backgroundColor:"#512DA8"},
-           headerTintColor:"white",
-           headerLeft:(color)=>(
+          title:"Cart",
+          headerStyle:{backgroundColor:"#7f89df"},
+          headerTintColor:"white",
+          headerLeft:(color)=>(
             <Icon
             name='bars'  size={24} color={color} style={{paddingLeft:20}}
             onPress={ () =>navigation.toggleDrawer() }  
           />
            )
-         }}
+        }}
       />
-      <Stack.Screen name="Dishdetail" component={Dishdetail} />
+        <Stack.Screen name="Delivery" component={Delivery} />
+        
     </Stack.Navigator>
-  );
+  )
 }
-
 
 
 const ReservationNavigator=({navigation})=>{
@@ -217,8 +305,8 @@ const ReservationNavigator=({navigation})=>{
     <Stack.Navigator>
        <Stack.Screen name="Reservation" component={Reservation}
          options={{
-          title:"Reservation",
-          headerStyle:{backgroundColor:"#512DA8"},
+          title:"Custom Order",
+          headerStyle:{backgroundColor:"#7f89df"},
           headerTintColor:"white",
           headerLeft:(color)=>(
             <Icon
@@ -232,22 +320,50 @@ const ReservationNavigator=({navigation})=>{
   )
 }
 
-class Main extends Component {
-  constructor(props) {
-    super();
-  }
+const loginNavigator=({navigation})=>{
+  return(
+    <Stack.Navigator>
+    <Stack.Screen name="Login" component={Login}
+      options={{
+       title:"Login",
+       headerStyle:{backgroundColor:"#B2EBEB"},
+       headerTintColor:"white",
+       headerLeft:(color)=>(
+         <Icon
+         name='bars'  size={24} color={color} style={{paddingLeft:20}}
+         onPress={ () =>navigation.toggleDrawer() }  
+       />
+        )
+     }}
+   />
+    
+    <Stack.Screen name="OTPsend" component={OTPsend}   options={{
+       title:"Send ",
+       headerStyle:{backgroundColor:"#B2EBEB"},}} />
+    <Stack.Screen name="OTPverify" component={OTPverify} options={{
+       title:"Verify",
+       headerStyle:{backgroundColor:"#B2EBEB"},}}/>
+    <Stack.Screen name="RegisterTab" component={RegisterTab}  options={{
+       title:"Register",
+       headerStyle:{backgroundColor:"#B2EBEB"},}} />
+    <Stack.Screen name="ResetOTPsend" component={ResetOTPsend}
+     options={{
+      title:"Send",
+      headerStyle:{backgroundColor:"#B2EBEB"},}} />
+    <Stack.Screen name="ResetOTPverify" component={ResetOTPverify}  options={{
+       title:"Verify",
+       headerStyle:{backgroundColor:"#B2EBEB"},}}/>
+    <Stack.Screen name="ResetPassword" component={ResetPassword}
+     options={{
+      title:"Reset",
+      headerStyle:{backgroundColor:"#B2EBEB"},}} />
+ </Stack.Navigator>
+  )
+}
 
-  componentDidMount() {
-    this.props.fetchDishes();
-    this.props.fetchComments();
-    this.props.fetchPromos();
-    this.props.fetchLeaders();
-  }
-  
 
-  render() {
     return (
-        <DrawerNavigator/>
+        <DrawerNavigator  />
     );
   }
 }

@@ -6,8 +6,12 @@ import Main from './components/MainComponent';
 import { DrawerActions, NavigationContainer } from '@react-navigation/native';
 
 import {Provider} from 'react-redux';
-import {ConfigreStore} from './redux/configureStore';
-const store=ConfigreStore();
+import {ConfigureStore} from './redux/configureStore';
+import { PersistGate } from 'redux-persist/es/integration/react'
+import { Loading } from './components/LoadingComponent';
+
+
+const { persistor, store } = ConfigureStore();
 
 export default class  App extends Component {
 
@@ -16,9 +20,13 @@ export default class  App extends Component {
     return(
      
         <NavigationContainer>
-           <Provider store={store}>
-           <Main/>
-           </Provider>
+             <Provider store={store}>
+               <PersistGate 
+                loading={<Loading />}
+                persistor={persistor}>
+                <Main />
+               </PersistGate>
+              </Provider>
         </NavigationContainer>
     
     )

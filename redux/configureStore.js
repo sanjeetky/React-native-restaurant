@@ -3,21 +3,31 @@ import thunk from 'redux-thunk';
 import logger from 'redux-logger';
 import {dishes} from './dishes';
 import {comments} from './comments';
-import {promotions} from './promotions';
-import {leaders} from './leaders';
-import { favorites } from './favorites';
+import {cart} from './cart'
+import {user} from './user';
+import {sliderimage} from './sliderimage';
+import { persistStore, persistCombineReducers } from 'redux-persist';
+import { AsyncStorage } from 'react-native';
 
 
-export const ConfigreStore=()=>{
-    const store=createStore(
-        combineReducers({
+const config = {
+    key: 'root',
+    storage:AsyncStorage,
+    debug: true
+  }
+
+export const ConfigureStore=()=>{
+    const store = createStore(
+        persistCombineReducers(config, {
             dishes,
             comments,
-            promotions,
-            leaders,
-            favorites
+            user,
+            cart,
+            sliderimage
         }),
         applyMiddleware(thunk,logger)
     );
-    return store;
+
+    const persistor = persistStore(store)
+    return {store,persistor};
 }

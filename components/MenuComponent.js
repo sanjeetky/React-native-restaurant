@@ -1,14 +1,17 @@
 import React, { Component } from 'react';
-import { View, FlatList } from 'react-native';
+import { Text,View, FlatList, ScrollView ,TouchableOpacity,Dimensions} from 'react-native';
 import Reservation from './ReservationComponent';
-import { Tile } from 'react-native-elements';
+import { Tile ,Card,Icon,Badge,Avatar} from 'react-native-elements';
 import { connect } from 'react-redux';
 import { baseUrl } from '../shared/baseUrl';
 import { Loading } from './LoadingComponent';
+import * as Animatable from 'react-native-animatable';
+
 
 const mapStateToProps = state => {
     return {
-      dishes: state.dishes
+      dishes: state.dishes,
+      cart:state.cart
     }
   }
 
@@ -17,23 +20,29 @@ constructor(props)
 {
     super();
 }
+
    
     render() {
+        const category= this.props.route.params.category;
 
-    const renderMenuItem = ({item, index}) => {
-
-        return (
-            <Tile
-            key={index}
-            title={item.name}
-            caption={item.description}
-            featured
-            onPress={() => this.props.navigation.navigate('Dishdetail', { dishId: item.id })}
-            imageSrc={{ uri: baseUrl + item.image}}
-          
-          />
-        );
+    const RenderItems = ({item,index})=>{
+        
+           return (
+             
+            <TouchableOpacity onPress={() => this.props.navigation.navigate('Dishdetail', { dishId: item.itemid })}  >
+               <View  style={{width:170,left:-10}} >
+               <Card    image={{uri:item.img}}  >
+                    
+                <Text style={{alignSelf:"center"}} >{item.name}</Text>
+              </Card>
+              </View>
+            </TouchableOpacity>
+      
+        )
     };
+
+       
+    
 
     if (this.props.dishes.isLoading) {
         return(
@@ -49,11 +58,30 @@ constructor(props)
     }
     else {
         return (
-            <FlatList 
-                data={this.props.dishes.dishes}
-                renderItem={renderMenuItem}
-                keyExtractor={item => item.id.toString()}
-                />
+            <View style={{flex:1}} >
+            <FlatList
+            data={this.props.dishes.dishes.filter((item)=>item.category==category)}
+            renderItem={RenderItems}
+            keyExtractor={item => item.id}
+            numColumns={2}
+            horizontal={false}
+           
+           />
+
+                <View style={{position:'absolute',right:5,bottom:5,flexDirection:'column',justifyContent:'flex-end'}}>
+                      <Icon
+                            raised
+                            reverse
+                            name='search'
+                            type='font-awesome'
+                            color='#F2D73F'
+                            onPress={()=>this.props.navigation.navigate('Search')}
+                            size={21}
+                             iconStyle={{color:'black',fontSize:18}}
+                            />
+                  </View>
+
+        </View>
         );
     }
     }
@@ -61,4 +89,16 @@ constructor(props)
 }
 
 
-export default connect(mapStateToProps) (Menu);
+export default connect(mapStateToProps,null) (Menu);
+
+/*<Animatable.View animation="fadeInDownBig" duration={2000}  useNativeDriver={true} >     
+            <Tile
+            key={index}
+            title={item.name}
+            caption={item.description}
+            featured
+            onPress={() => this.props.navigation.navigate('Dishdetail', { dishId: item.id })}
+            imageSrc={{ uri: baseUrl + item.image}}
+          
+          />
+          </Animatable.View>*/

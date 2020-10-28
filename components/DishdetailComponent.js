@@ -1,82 +1,108 @@
 import React, { Component } from 'react';
-import { Text, View, ScrollView, FlatList,Modal, StyleSheet,Button, TextInput } from 'react-native';
-import { Card ,Icon} from 'react-native-elements';
+import { Text, View, ScrollView, FlatList,Modal, StyleSheet,ToastAndroid, TextInput,Alert, PanResponder, Share, CheckBox, TouchableHighlightBase  } from 'react-native';
+import { Card ,Icon,Badge,Avatar} from 'react-native-elements';
 import { connect } from 'react-redux';
-import { baseUrl } from '../shared/baseUrl';
-import { postFavorite } from '../redux/ActionCreators';
+import {Button} from 'react-native-paper';
+import { postcart } from '../redux/ActionCreators';
 import {postComments} from '../redux/ActionCreators';
+import { FontAwesome } from '@expo/vector-icons';
+
+
 import Stars from 'react-native-stars';
-//import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
- 
+import * as Animatable from 'react-native-animatable';
 
 
 const mapStateToProps = state => {
     return {
       dishes: state.dishes,
       comments: state.comments,
-      favorites: state.favorites
+      user:state.user,
+      cart:state.cart
     }
   }
   const mapDispatchToProps = dispatch => ({
-    postFavorite: (dishId) => dispatch(postFavorite(dishId)),
-    postComments:(comments)=>dispatch(postComments(comments))
+  
+    postComments:(comments)=>dispatch(postComments(comments)),
+    postcart:(item)=>dispatch(postcart(item))
 })
 
-function RenderComments(props) {
 
-    const comments = props.comments;
-            
+
+
+  class RenderComments extends Component{
+        constructor(props){
+          super();
+          this.state={
+            coment:""
+          }
+        }
+render(){
+    const comments =this. props.comments;
     const renderCommentItem = ({item, index}) => {
         
         return (
             <View key={index} style={{margin: 10}}>
                 <Text style={{fontSize: 14}}>{item.comment}</Text>
-                <Text style={{fontSize: 12}}>{item.rating} Stars</Text>
                 <Text style={{fontSize: 12}}>{'-- ' + item.author + ', ' + item.date} </Text>
             </View>
         );
     };
-    
+ 
     return (
+      <Animatable.View animation="fadeInUp" duration={2000} delay={1000}  useNativeDriver={true} > 
         <Card title='Comments' >
+
+         
         <FlatList 
             data={comments}
             renderItem={renderCommentItem}
-            keyExtractor={item => item.id.toString()}
+            keyExtractor={item => item.id}
             />
+
+
+        <View style={{flexDirection:'row',position:'relative'}}>
+           <TextInput
+            style={{ height: 40,width:180  ,borderBottomColor: 'gray', borderBottomWidth:1,left:0 }}
+            onChangeText={text=>this.setState({coment:text})}
+            value={this.state.coment}
+            placeholder={"Type your comment..."}
+         />
+         <Button  color={'#fff'} style={{position:'absolute',right:0,backgroundColor:"#7f89df"}} onPress={()=>this.props.post(this.props.id,this.state.coment)}>
+           POST
+         </Button>
+           </View>
         </Card>
+
+       </Animatable.View>
     );
 }
+  }
+
+
 
 function RenderDish(props) {
 
     const dish = props.dish;
-    
+   
         if (dish != null) {
             return(
+            <Animatable.View animation="fadeInDown" duration={2000} delay={1000}  useNativeDriver={true} >
                 <Card
-                featuredTitle={dish.name}
-                image={{uri: baseUrl + dish.image}}>
-                    <Text style={{margin: 10}}>
-                        {dish.description}
+                image={{uri: dish[0].img}}
+                >
+                    <Text style={{margin:2}}>{dish[0].name}</Text>
+                    <Text style={{margin: 2,marginBottom:15}}>
+                        {dish[0].description}
                     </Text>
-                    <Icon
-                        raised
-                        reverse
-                        name={ props.favorite ? 'heart' : 'heart-o'}
-                        type='font-awesome'
-                        color='#f50'
-                        onPress={() => props.favorite ? console.log('Already favorite') : props.onPress()}
-                        />
-                          <Icon
-                        raised
-                        reverse
-                        name={ props.favorite ? 'pencil-square' : 'pencil-square-o'}
-                        type='font-awesome'
-                        color='orange'
-                        onPress={() => props.onComment()}
-                        />
+                  
+                  
+                          <Button icon="cart-plus"    onPress={()=>props.onPress()} color={'#fff'} style={{alignSelf:'center', backgroundColor:"#7f89df",marginBottom:10,marginTop:10,paddingLeft:10,paddingRight:10}} >
+                                 Add to Cart
+                          </Button>
+                 
+                       
                 </Card>
+            </Animatable.View>
             );
         }
         else {
@@ -90,88 +116,70 @@ class Dishdetail extends Component {
         this.state = {
             favorites: [],
             showModal:false,
-            username:"",
-            usercomment:"",
-            stars:2
+            username:""
         };
-    }
-    markFavorite(dishId) {
-        this.props.postFavorite(dishId);
-    }
-    toggleModal(){
-        this.setState({showModal:!this.state.showModal})
-    }
-    submitComment(dishID){
     
-        this.props.postComments(({id:20,dishId:dishID,rating:this.state.stars,comment:this.state.usercomment,author:this.state.username,date:new Date().toLocaleString()}));
     }
-    resetform()
+   
+ 
+    addtocart(item)
     {
-        this.setState({
-            username:"",
-            usercomment:"",
-            stars:2
-        })
+        if(this.props.user.user.username!=null)
+        {
+           this.props.postcart({item:item[0],username:this.props.user.user.username})
+        ToastAndroid.show("Successfully Added",ToastAndroid.SHORT)
+        }
+        else
+        ToastAndroid.show("Please Login",ToastAndroid.SHORT)
     }
-  
+
+    submitComment=(id,coment)=>{
+    
+      if(this.props.user.user.username!=null)
+      {
+        this.props.postComments(({itemid:id,comment:coment,author:this.props.user.user.username,date:new Date().toLocaleString()}));
+      }
+      else
+      {
+        ToastAndroid.show("Please Login",
+        ToastAndroid.SHORT)
+      }
+    }
+
+
     render() {
         console.log(this.props);
         const dishId = this.props.route.params.dishId;
+        const item=this.props.dishes.dishes.filter((item)=>item.itemid==dishId);
         return(
+          <View style={{flex:1}}>
           <ScrollView>
-           <RenderDish dish={this.props.dishes.dishes[+dishId]}
-                    favorite={this.props.favorites.some(el => el === dishId)}
-                    onPress={() => this.markFavorite(dishId)} 
-                    onComment={()=>{this.submitComment(dishId);this.resetform()}}
-                    />
-            <RenderComments comments={this.props.comments.comments.filter((comment) => comment.dishId === dishId)} />
-            <Modal animationType = {"slide"} transparent = {false}
-                    visible= {this.state.showModal}
-                    onDismiss = {() => this.toggleModal()}
-                    onRequestClose = {() => this.toggleModal()}>
+           <RenderDish dish={this.props.dishes.dishes.filter((item)=>item.itemid==dishId)}
                   
-                  <View style={{alignItems:'center'}}>
-                  <Stars
-                    default={2}
-                    count={5}
-                    half={true}
-                    update={(val)=> this.setState({stars: val})}
-                    starSize={50}
-                    fullStar={<Icon name={'star'} type='font-awesome'/> }
-                    emptyStar={<Icon name={'star-o'} type='font-awesome'/>}
-                    halfStar={<Icon name={'star-half-o'} type='font-awesome'/>}
-                  />
-                </View>
-                <View style={styles.formRow}>
-              
-                  <TextInput
-                    style={styles.formLabel}
-                    placeholder="@Name"
-                    onChangeText={text => this.setState({username:text})}
-                    value={this.state.username}
-                   />
-                </View>
-                <View style={styles.formRow}>
-              
-                  <TextInput
-                    style={styles.formLabel}
-                    placeholder="@Comment"
-                    onChangeText={text => this.setState({usercomment:text})}
-                    value={this.state.usercomment}
-                   />
-                </View>
+                    onPress={() => this.addtocart(item)} 
+                    onComment={()=>{this.toggleModal();this.resetform()}}
+                                     />
+            <RenderComments    post={this.submitComment}    id={dishId}                   comments={this.props.comments.comments.filter((comment) => comment.itemid === dishId)} />
+    
+                  
                
-                
-                <View style={styles.formRow}>
-                <Button
-                    onPress={() => {this.submitComment(dishId);this.resetform();this.toggleModal()}}
-                    title="Submit"
-                    color="#512DA8"
-                    accessibilityLabel="Learn more about this purple button"
-                    />
-                </View>
-                </Modal>
           </ScrollView>
+               
+
+          <View style={{position:'absolute',right:5,bottom:5,flexDirection:'column',justifyContent:'flex-end'}}>
+                       <Icon
+                            raised
+                            reverse
+                            name='search'
+                            type='font-awesome'
+                            color='#F2D73F'
+                            onPress={()=>this.props.navigation.navigate('Search')}
+                            size={21}
+                             iconStyle={{color:'black',fontSize:18}}
+                            />
+          </View>
+
+          </View>
         );
     }
 }
@@ -223,3 +231,26 @@ const styles = StyleSheet.create({
 });
 
 export default connect(mapStateToProps, mapDispatchToProps)(Dishdetail);
+
+
+
+/*  <Icon
+                        raised
+                        reverse
+                        name={ false ? 'heart' : 'heart-o'}
+                        type='font-awesome'
+                        color='#f50'
+                        onPress={() => false ? props.delfav() : props.onPress()}
+                        />
+
+
+                        
+                          <Icon
+                        raised
+                        reverse
+                        name={false ? 'pencil-square' : 'pencil-square-o'}
+                        type='font-awesome'
+                        color='orange'
+                        onPress={() => props.onComment()}
+                        />
+                        */
